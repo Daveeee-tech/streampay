@@ -95,6 +95,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install CLI dependencies for cross-client parity
+        run: npm install --prefix ../tools/streampay-cli --no-package-lock --ignore-scripts --no-audit --no-fund
+
       - name: Lint
         run: npm run lint
 

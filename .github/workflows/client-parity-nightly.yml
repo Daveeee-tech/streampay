@@ -30,13 +30,13 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Frontend parity run
-        working-directory: frontend
-        run: npm run test:parity
-
       - name: Install CLI dependencies
         working-directory: tools/streampay-cli
         run: npm install --no-package-lock --ignore-scripts --no-audit --no-fund
+
+      - name: Frontend parity run
+        working-directory: frontend
+        run: npm run test:parity
 
       - name: CLI parity run
         working-directory: tools/streampay-cli

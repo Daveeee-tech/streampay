@@ -6,6 +6,10 @@ import {
   buildCreateStreamOperationForDays,
   buildWithdrawOperation,
 } from "../lib/stellar.ts";
+import {
+  buildCreateStreamOperation as buildCliCreateStreamOperation,
+  buildWithdrawOperation as buildCliWithdrawOperation,
+} from "../../tools/streampay-cli/src/cli.ts";
 import { durationSecondsFromDays } from "../../scripts/lib/duration.ts";
 
 const fixtures = JSON.parse(readFileSync(new URL("../../tests/client-parity/fixtures.json", import.meta.url), "utf8")) as {
@@ -56,6 +60,37 @@ test("frontend operation builders match canonical Soroban XDR for lifecycle fixt
   }
 });
 
+test("frontend and CLI operation builders match XDR for shared lifecycle fixtures", () => {
+  const { contract, token, sender, recipient } = fixtures.operationAddresses;
+  for (const scenario of fixtures.cases) {
+    const frontendCreate = buildCreateStreamOperationForDays(
+      contract,
+      sender,
+      recipient,
+      token,
+      scenario.deposit,
+      BigInt(scenario.startTime),
+      scenario.durationDays,
+      scenario.cancelable
+    );
+    const cliCreate = buildCliCreateStreamOperation(
+      contract,
+      sender,
+      recipient,
+      token,
+      BigInt(scenario.deposit),
+      BigInt(scenario.startTime),
+      BigInt(scenario.endTime),
+      scenario.cancelable
+    );
+    assert.equal(frontendCreate.toXDR().toString("base64"), cliCreate.toXDR().toString("base64"));
+
+    const frontendWithdraw = buildWithdrawOperation(contract, "1", scenario.withdrawAmount);
+    const cliWithdraw = buildCliWithdrawOperation(contract, 1n, BigInt(scenario.withdrawAmount));
+    assert.equal(frontendWithdraw.toXDR().toString("base64"), cliWithdraw.toXDR().toString("base64"));
+  }
+});
+
 
 test("frontend exact decimal day conversion matches shared boundary fixtures", () => {
   for (const scenario of fixtures.durationCases) {
@@ -91,3 +126,4 @@ test("frontend create-stream duration path builds canonical XDR for duration fix
     assert.equal(operation.toXDR().toString("base64"), expected.toXDR().toString("base64"));
   }
 });
+
