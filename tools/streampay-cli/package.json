@@ -13,10 +13,10 @@
   "scripts": {
     "streampay": "node --experimental-strip-types src/cli.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test test/crypto.test.ts test/integration.test.ts"
+    "test": "node --experimental-strip-types --test test/crypto.test.ts test/integration.test.ts test/client-parity.test.ts"
   },
   "dependencies": {
-    "@stellar/stellar-sdk": "^17.2.1"
+    "@stellar/stellar-sdk": "17.2.1"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

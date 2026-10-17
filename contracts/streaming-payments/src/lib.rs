@@ -53,6 +53,8 @@ mod differential_harness;
 mod differential_test;
 #[cfg(test)]
 mod error_surface_test;
+#[cfg(test)]
+mod client_parity_test;
 mod errors;
 mod events;
 mod policy;

@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "node --test",
+    "test:parity": "node --experimental-strip-types --test test/client-parity.test.ts",
     "test:a11y": "node --experimental-strip-types --test test/a11y.test.ts",
     "generate:openapi": "npx tsx scripts/generate-openapi.ts"
   },

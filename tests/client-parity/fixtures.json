@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "description": "Canonical cross-client scenarios use integer units and fixed ledger timestamps.",
+  "operationAddresses": {
+    "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+    "token": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+    "sender": "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
+    "recipient": "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"
+  },
+  "durationCases": [
+    { "days": "0.1", "seconds": "8640" },
+    { "days": "0.000000000000000001", "seconds": "1" },
+    { "days": "36500", "seconds": "3153600000" }
+  ],
+  "cases": [
+    {
+      "id": "odd-deposit-halfway-withdraw",
+      "deposit": "101",
+      "startTime": "1000",
+      "endTime": "1010",
+      "withdrawTime": "1005",
+      "withdrawAmount": "50",
+      "cancelable": true,
+      "events": [
+        {
+          "name": "StreamCreated",
+          "payload": {
+            "stream_id": "1",
+            "deposit": "101",
+            "start_time": "1000",
+            "end_time": "1010",
+            "cancelable": true
+          }
+        },
+        {
+          "name": "Withdrawn",
+          "payload": {
+            "stream_id": "1",
+            "amount": "50",
+            "withdrawn_total": "50"
+          }
+        }
+      ],
+      "balances": {
+        "sender": "899",
+        "recipient": "50",
+        "contract": "51"
+      }
+    },
+    {
+      "id": "odd-deposit-at-end-withdraw",
+      "deposit": "101",
+      "startTime": "1000",
+      "endTime": "1010",
+      "withdrawTime": "1010",
+      "withdrawAmount": "101",
+      "cancelable": true,
+      "events": [
+        {
+          "name": "StreamCreated",
+          "payload": {
+            "stream_id": "1",
+            "deposit": "101",
+            "start_time": "1000",
+            "end_time": "1010",
+            "cancelable": true
+          }
+        },
+        {
+          "name": "Withdrawn",
+          "payload": {
+            "stream_id": "1",
+            "amount": "101",
+            "withdrawn_total": "101"
+          }
+        }
+      ],
+      "balances": {
+        "sender": "899",
+        "recipient": "101",
+        "contract": "0"
+      }
+    }
+  ]
+}

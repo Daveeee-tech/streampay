@@ -1,0 +1,51 @@
+name: Nightly Client Parity
+
+on:
+  schedule:
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-fixture-matrix:
+    name: Full client fixture matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Contract testutils parity run
+        run: cargo test -p streampay-contract --locked client_parity_test::shared_client_parity_fixtures_match_event_xdr_and_balances
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Frontend parity run
+        working-directory: frontend
+        run: npm run test:parity
+
+      - name: Install CLI dependencies
+        working-directory: tools/streampay-cli
+        run: npm install --no-package-lock --ignore-scripts --no-audit --no-fund
+
+      - name: CLI parity run
+        working-directory: tools/streampay-cli
+        run: npm test
+
+      - name: Archive shared parity fixtures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: client-parity-fixtures-${{ github.run_id }}
+          path: tests/client-parity/fixtures.json
+          if-no-files-found: error

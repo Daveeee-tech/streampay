@@ -5,6 +5,7 @@
   "description": "Workspace-level scripts exposing every workflow step for contributors.",
   "scripts": {
     "test":        "cargo test -p streampay-contract --locked",
+    "client-parity:bless": "node scripts/client-parity/bless.mjs",
     "test:fuzz":   "echo 'Run fuzz targets manually: cd fuzz && cargo +nightly fuzz run <target>'",
 
     "lint":        "cargo fmt --all -- --check && cargo clippy --all-targets -- -D warnings",

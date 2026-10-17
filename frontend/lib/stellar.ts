@@ -20,6 +20,7 @@ import {
 } from "@stellar/stellar-sdk";
 import { signTransaction } from "@stellar/freighter-api";
 import type { BatchStreamEntry } from "./batch";
+import { durationSecondsFromDays } from "../../scripts/lib/duration.ts";
 
 const RPC_URL =
   process.env.NEXT_PUBLIC_SOROBAN_RPC_URL ||
@@ -70,6 +71,40 @@ function i128(v: string) {
 
 function u32(v: number) {
   return nativeToScVal(BigInt(v), { type: "u32" });
+}
+
+export function buildCreateStreamOperation(
+  contractId: string,
+  sender: string,
+  recipient: string,
+  token: string,
+  deposit: string,
+  startTime: bigint,
+  endTime: bigint,
+  cancelable: boolean
+): xdr.Operation {
+  return new Contract(contractId).call(
+    "create_stream",
+    scAddr(sender),
+    scAddr(recipient),
+    scAddr(token),
+    i128(deposit),
+    u64(startTime),
+    u64(endTime),
+    nativeToScVal(cancelable)
+  );
+}
+
+export function buildWithdrawOperation(
+  contractId: string,
+  streamId: string,
+  amount: string
+): xdr.Operation {
+  return new Contract(contractId).call(
+    "withdraw",
+    u64(streamId),
+    i128(amount)
+  );
 }
 
 /**
@@ -303,20 +338,20 @@ export async function createStream(
 ): Promise<bigint> {
   const token = tokenContractId(args.token); // "native" → the network's XLM SAC
   const start = Math.floor(Date.now() / 1000) + 1;
-  const end = start + Math.ceil(Number(args.days) * 86_400);
+  const end = start + durationSecondsFromDays(args.days);
   // The contract pulls the deposit through a token allowance — make sure it
   // is in place before simulation (one extra Freighter signature on the
   // first stream with a given asset).
   await ensureAllowance(sender, token, args.deposit);
-  const op = contract().call(
-    "create_stream",
-    scAddr(sender),
-    scAddr(args.recipient),
-    scAddr(token),
-    i128(args.deposit),
-    u64(start),
-    u64(end),
-    nativeToScVal(args.cancelable)
+  const op = buildCreateStreamOperation(
+    CONTRACT_ID,
+    sender,
+    args.recipient,
+    token,
+    args.deposit,
+    start,
+    end,
+    args.cancelable
   );
   // create_stream returns the new stream id (u64).
   return send(sender, op, (v) => BigInt(scValToNative(v) as bigint));
@@ -380,7 +415,7 @@ export async function withdrawFromStream(
 ): Promise<void> {
   await send(
     recipient,
-    contract().call("withdraw", u64(streamId), i128(amount)),
+    buildWithdrawOperation(CONTRACT_ID, streamId, amount),
     () => undefined
   );
 }

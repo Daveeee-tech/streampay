@@ -15,6 +15,7 @@ import {
   xdr,
 } from "@stellar/stellar-sdk";
 import { decryptSecret, encryptSecret } from "./crypto.ts";
+import { durationSecondsFromDays } from "../../../scripts/lib/duration.ts";
 
 type OutputMode = "json" | "text";
 type SignerMode = "env" | "file" | "ledger";
@@ -188,6 +189,42 @@ function scAddress(value: string): xdr.ScVal {
 
 function scInteger(value: bigint, type: "u32" | "u64" | "i128"): xdr.ScVal {
   return nativeToScVal(value, { type });
+}
+
+export function buildCreateStreamOperation(
+  contractId: string,
+  source: string,
+  recipient: string,
+  token: string,
+  deposit: bigint,
+  startTime: bigint,
+  endTime: bigint,
+  cancelable: boolean
+): xdr.Operation {
+  return contractCall(
+    contractId,
+    "create_stream",
+    scAddress(source),
+    scAddress(recipient),
+    scAddress(token),
+    scInteger(deposit, "i128"),
+    scInteger(startTime, "u64"),
+    scInteger(endTime, "u64"),
+    nativeToScVal(cancelable)
+  );
+}
+
+export function buildWithdrawOperation(
+  contractId: string,
+  streamId: bigint,
+  amount: bigint
+): xdr.Operation {
+  return contractCall(
+    contractId,
+    "withdraw",
+    scInteger(streamId, "u64"),
+    scInteger(amount, "i128")
+  );
 }
 
 function contractCall(contractId: string, method: string, ...args: xdr.ScVal[]): xdr.Operation {
@@ -461,23 +498,24 @@ async function buildOperations(
     const recipient = parseAddress(required(options, "recipient"), "recipient");
     const deposit = parsePositiveInteger(required(options, "deposit"), "deposit");
     const daysText = required(options, "days");
-    const days = Number(daysText);
-    if (!Number.isFinite(days) || days <= 0 || days > 36_500) {
-      throw new CliError("days must be greater than 0 and no more than 36,500", "USAGE", 2);
+    let duration: bigint;
+    try {
+      duration = durationSecondsFromDays(daysText);
+    } catch (error) {
+      throw new CliError(errorMessage(error), "USAGE", 2);
     }
     const start = BigInt(Math.floor(Date.now() / 1000) + 60);
-    const end = start + BigInt(Math.ceil(days * 86_400));
+    const end = start + duration;
     return {
-      operations: [contractCall(
+      operations: [buildCreateStreamOperation(
         contractId,
-        "create_stream",
-        scAddress(source),
-        scAddress(recipient),
-        scAddress(token),
-        scInteger(deposit, "i128"),
-        scInteger(start, "u64"),
-        scInteger(end, "u64"),
-        nativeToScVal(options.flags.has("--cancelable"))
+        source,
+        recipient,
+        token,
+        deposit,
+        start,
+        end,
+        options.flags.has("--cancelable")
       )],
       streamIds: [],
       streamTokens,
@@ -492,7 +530,7 @@ async function buildOperations(
     const amount = options.command === "cancel" ? undefined :
       parsePositiveInteger(required(options, "amount"), "amount");
     const operation = options.command === "withdraw"
-      ? contractCall(contractId, "withdraw", scInteger(BigInt(streamId), "u64"), scInteger(amount!, "i128"))
+      ? buildWithdrawOperation(contractId, BigInt(streamId), amount!)
       : options.command === "top-up"
         ? contractCall(contractId, "top_up", scInteger(BigInt(streamId), "u64"), scInteger(amount!, "i128"))
         : contractCall(contractId, "cancel_stream", scAddress(source), scInteger(BigInt(streamId), "u64"));
