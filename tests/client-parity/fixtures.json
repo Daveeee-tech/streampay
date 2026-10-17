@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "description": "Canonical cross-client scenarios use integer units and fixed ledger timestamps.",
+  "description": "Synthetic valid StrKeys and integer-valued lifecycle scenarios for deterministic local parity checks; addresses are not provisioned on a network.",
   "operationAddresses": {
-    "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
-    "token": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+    "contract": "CBEPDNVYXQGWB5YUBXKJWYJA7OXTZW5LFLNO5JRRGE6Z6C5OSUZPCCEL",
+    "token": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
     "sender": "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
-    "recipient": "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"
+    "recipient": "GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEGWF"
   },
   "durationCases": [
     { "days": "0.1", "seconds": "8640" },
@@ -17,6 +17,7 @@
       "id": "odd-deposit-halfway-withdraw",
       "deposit": "101",
       "startTime": "1000",
+      "durationDays": "0.00011574",
       "endTime": "1010",
       "withdrawTime": "1005",
       "withdrawAmount": "50",
@@ -51,6 +52,7 @@
       "id": "odd-deposit-at-end-withdraw",
       "deposit": "101",
       "startTime": "1000",
+      "durationDays": "0.00011574",
       "endTime": "1010",
       "withdrawTime": "1010",
       "withdrawAmount": "101",

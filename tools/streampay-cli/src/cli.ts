@@ -57,12 +57,17 @@ interface PreparedBatch {
 }
 
 class CliError extends Error {
+  readonly code: string;
+  readonly exitCode: number;
+
   constructor(
     message: string,
-    readonly code: string,
-    readonly exitCode: number
+    code: string,
+    exitCode: number
   ) {
     super(message);
+    this.code = code;
+    this.exitCode = exitCode;
   }
 }
 

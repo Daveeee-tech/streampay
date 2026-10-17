@@ -48,13 +48,13 @@
 extern crate std;
 
 #[cfg(test)]
+mod client_parity_test;
+#[cfg(test)]
 mod differential_harness;
 #[cfg(test)]
 mod differential_test;
 #[cfg(test)]
 mod error_surface_test;
-#[cfg(test)]
-mod client_parity_test;
 mod errors;
 mod events;
 mod policy;

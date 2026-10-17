@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { Address, Contract, nativeToScVal } from "@stellar/stellar-sdk";
 import {
-  buildCreateStreamOperation,
+  buildCreateStreamOperationForDays,
   buildWithdrawOperation,
 } from "../lib/stellar.ts";
 import { durationSecondsFromDays } from "../../scripts/lib/duration.ts";
@@ -14,23 +14,25 @@ const fixtures = JSON.parse(readFileSync(new URL("../../tests/client-parity/fixt
   cases: Array<{
     deposit: string;
     startTime: string;
+    durationDays: string;
     endTime: string;
     withdrawAmount: string;
+    cancelable: boolean;
   }>;
 };
 
-test("frontend signing operations match canonical Soroban XDR for shared fixtures", () => {
+test("frontend operation builders match canonical Soroban XDR for lifecycle fixtures", () => {
   const { contract, token, sender, recipient } = fixtures.operationAddresses;
   for (const scenario of fixtures.cases) {
-    const create = buildCreateStreamOperation(
+    const create = buildCreateStreamOperationForDays(
       contract,
       sender,
       recipient,
       token,
       scenario.deposit,
       BigInt(scenario.startTime),
-      BigInt(scenario.endTime),
-      true
+      scenario.durationDays,
+      scenario.cancelable
     );
     const expectedCreate = new Contract(contract).call(
       "create_stream",
@@ -40,7 +42,7 @@ test("frontend signing operations match canonical Soroban XDR for shared fixture
       nativeToScVal(BigInt(scenario.deposit), { type: "i128" }),
       nativeToScVal(BigInt(scenario.startTime), { type: "u64" }),
       nativeToScVal(BigInt(scenario.endTime), { type: "u64" }),
-      nativeToScVal(true)
+      nativeToScVal(scenario.cancelable)
     );
     assert.equal(create.toXDR().toString("base64"), expectedCreate.toXDR().toString("base64"));
 
@@ -54,8 +56,38 @@ test("frontend signing operations match canonical Soroban XDR for shared fixture
   }
 });
 
+
 test("frontend exact decimal day conversion matches shared boundary fixtures", () => {
   for (const scenario of fixtures.durationCases) {
     assert.equal(durationSecondsFromDays(scenario.days).toString(), scenario.seconds);
+  }
+});
+
+test("frontend create-stream duration path builds canonical XDR for duration fixtures", () => {
+  const { contract, token, sender, recipient } = fixtures.operationAddresses;
+  const startTime = 1_000n;
+  for (const scenario of fixtures.durationCases) {
+    const endTime = startTime + BigInt(scenario.seconds);
+    const operation = buildCreateStreamOperationForDays(
+      contract,
+      sender,
+      recipient,
+      token,
+      "101",
+      startTime,
+      scenario.days,
+      true
+    );
+    const expected = new Contract(contract).call(
+      "create_stream",
+      nativeToScVal(new Address(sender), { type: "address" }),
+      nativeToScVal(new Address(recipient), { type: "address" }),
+      nativeToScVal(new Address(token), { type: "address" }),
+      nativeToScVal(101n, { type: "i128" }),
+      nativeToScVal(startTime, { type: "u64" }),
+      nativeToScVal(endTime, { type: "u64" }),
+      nativeToScVal(true)
+    );
+    assert.equal(operation.toXDR().toString("base64"), expected.toXDR().toString("base64"));
   }
 });

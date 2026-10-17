@@ -1,12 +1,23 @@
 # Client Parity Fixtures
 
-The canonical inputs and expected behavioral observations live in
-`tests/client-parity/fixtures.json`. Amounts and timestamps are decimal strings
-so clients cannot silently round them through JavaScript numbers. Rust executes
-the lifecycle through the Soroban test client and checks contract event XDR and
-final token balances. The CLI and frontend tests build their production Soroban
-operations and compare the encoded XDR with the Stellar SDK's canonical
-operation encoding.
+The shared inputs and expected behavioral observations live in
+`tests/client-parity/fixtures.json`. It contains two create-and-withdraw
+lifecycle cases, plus exact-decimal duration boundary cases. Amounts and
+timestamps are decimal strings so clients cannot silently round them through
+JavaScript numbers. The Rust contract test executes both lifecycles through the
+Soroban test client and checks event XDR and final token balances. The CLI and
+frontend tests compare their production operation builders with canonical
+Stellar SDK XDR; the frontend also checks that the `createStream` duration path
+builds the expected operation for each duration fixture.
+
+This repository has two TypeScript operation-building clients in this matrix:
+the frontend and `streampay-cli`. There is no separate TypeScript SDK package.
+The matrix does not drive Freighter signing, submit operations to an RPC server,
+or cover pause, resume, cancel, top-up, authorization failures, and zero-max
+withdrawals. Fixture addresses are valid serialization inputs, not deployed
+accounts or a shared sandbox deployment. This work advances
+[issue #115](https://github.com/Neziahtech/streampay/issues/115), but is not a
+four-client live end-to-end matrix.
 
 Run the PR-sized checks with:
 
@@ -23,7 +34,7 @@ diff, and run the normal checks again. Blessing is not performed by CI.
 
 The Rust testutils client uses an in-process Soroban environment; it cannot
 share a deployed RPC instance with the CLI or Freighter. The current matrix
-therefore proves Rust behavioral goldens and byte-identical client operation
-encoding, but does not claim a live, signer-backed end-to-end run against one
-sandbox deployment. That requires a funded sandbox identity and a headless
+therefore proves Rust behavioral goldens and byte-identical operation encoding,
+but does not claim a live, signer-backed end-to-end run against one sandbox
+deployment. That requires a funded sandbox identity and a headless
 Freighter/signing adapter.

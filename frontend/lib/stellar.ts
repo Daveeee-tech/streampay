@@ -95,6 +95,28 @@ export function buildCreateStreamOperation(
   );
 }
 
+export function buildCreateStreamOperationForDays(
+  contractId: string,
+  sender: string,
+  recipient: string,
+  token: string,
+  deposit: string,
+  startTime: bigint,
+  days: string,
+  cancelable: boolean
+): xdr.Operation {
+  return buildCreateStreamOperation(
+    contractId,
+    sender,
+    recipient,
+    token,
+    deposit,
+    startTime,
+    startTime + durationSecondsFromDays(days),
+    cancelable
+  );
+}
+
 export function buildWithdrawOperation(
   contractId: string,
   streamId: string,
@@ -337,20 +359,19 @@ export async function createStream(
   args: StreamArgs
 ): Promise<bigint> {
   const token = tokenContractId(args.token); // "native" → the network's XLM SAC
-  const start = Math.floor(Date.now() / 1000) + 1;
-  const end = start + durationSecondsFromDays(args.days);
+  const start = BigInt(Math.floor(Date.now() / 1000) + 1);
   // The contract pulls the deposit through a token allowance — make sure it
   // is in place before simulation (one extra Freighter signature on the
   // first stream with a given asset).
   await ensureAllowance(sender, token, args.deposit);
-  const op = buildCreateStreamOperation(
+  const op = buildCreateStreamOperationForDays(
     CONTRACT_ID,
     sender,
     args.recipient,
     token,
     args.deposit,
     start,
-    end,
+    args.days,
     args.cancelable
   );
   // create_stream returns the new stream id (u64).

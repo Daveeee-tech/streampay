@@ -16,6 +16,7 @@ const fixtures = JSON.parse(readFileSync(new URL("../../../tests/client-parity/f
     startTime: string;
     endTime: string;
     withdrawAmount: string;
+    cancelable: boolean;
   }>;
 };
 
@@ -30,7 +31,7 @@ test("CLI operation builders match canonical Soroban XDR for shared fixtures", (
       BigInt(scenario.deposit),
       BigInt(scenario.startTime),
       BigInt(scenario.endTime),
-      true
+      scenario.cancelable
     );
     const expectedCreate = new Contract(contract).call(
       "create_stream",
@@ -40,7 +41,7 @@ test("CLI operation builders match canonical Soroban XDR for shared fixtures", (
       nativeToScVal(BigInt(scenario.deposit), { type: "i128" }),
       nativeToScVal(BigInt(scenario.startTime), { type: "u64" }),
       nativeToScVal(BigInt(scenario.endTime), { type: "u64" }),
-      nativeToScVal(true)
+      nativeToScVal(scenario.cancelable)
     );
     assert.equal(create.toXDR().toString("base64"), expectedCreate.toXDR().toString("base64"));
 
