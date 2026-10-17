@@ -5,7 +5,7 @@ import { Address, Contract, nativeToScVal } from "@stellar/stellar-sdk";
 import {
   buildCreateStreamOperationForDays,
   buildWithdrawOperation,
-} from "../lib/stellar.ts";
+} from "../lib/stellar-ops.ts";
 import {
   buildCreateStreamOperation as buildCliCreateStreamOperation,
   buildWithdrawOperation as buildCliWithdrawOperation,

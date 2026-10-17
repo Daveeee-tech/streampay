@@ -8,7 +8,6 @@
  */
 import {
   Account,
-  Address,
   nativeToScVal,
   Networks,
   rpc,
@@ -20,7 +19,14 @@ import {
 } from "@stellar/stellar-sdk";
 import { signTransaction } from "@stellar/freighter-api";
 import type { BatchStreamEntry } from "./batch";
-import { durationSecondsFromDays } from "../../scripts/lib/duration.ts";
+import {
+  buildCreateStreamOperationForDays,
+  buildWithdrawOperation,
+  i128,
+  scAddr,
+  u32,
+  u64,
+} from "./stellar-ops.ts";
 
 const RPC_URL =
   process.env.NEXT_PUBLIC_SOROBAN_RPC_URL ||
@@ -54,80 +60,8 @@ export interface StreamArgs {
   cancelable: boolean;
 }
 
-import type { StreamView } from "./pagination";
+import type { StreamView } from "./pagination.ts";
 export type { StreamView };
-
-function scAddr(s: string) {
-  return nativeToScVal(new Address(s), { type: "address" });
-}
-
-function u64(id: string | number | bigint) {
-  return nativeToScVal(BigInt(id), { type: "u64" });
-}
-
-function i128(v: string) {
-  return nativeToScVal(BigInt(v), { type: "i128" });
-}
-
-function u32(v: number) {
-  return nativeToScVal(BigInt(v), { type: "u32" });
-}
-
-export function buildCreateStreamOperation(
-  contractId: string,
-  sender: string,
-  recipient: string,
-  token: string,
-  deposit: string,
-  startTime: bigint,
-  endTime: bigint,
-  cancelable: boolean
-): xdr.Operation {
-  return new Contract(contractId).call(
-    "create_stream",
-    scAddr(sender),
-    scAddr(recipient),
-    scAddr(token),
-    i128(deposit),
-    u64(startTime),
-    u64(endTime),
-    nativeToScVal(cancelable)
-  );
-}
-
-export function buildCreateStreamOperationForDays(
-  contractId: string,
-  sender: string,
-  recipient: string,
-  token: string,
-  deposit: string,
-  startTime: bigint,
-  days: string,
-  cancelable: boolean
-): xdr.Operation {
-  return buildCreateStreamOperation(
-    contractId,
-    sender,
-    recipient,
-    token,
-    deposit,
-    startTime,
-    startTime + durationSecondsFromDays(days),
-    cancelable
-  );
-}
-
-export function buildWithdrawOperation(
-  contractId: string,
-  streamId: string,
-  amount: string
-): xdr.Operation {
-  return new Contract(contractId).call(
-    "withdraw",
-    u64(streamId),
-    i128(amount)
-  );
-}
 
 /**
  * Network label for localStorage keys — stream ids are per-network facts and
@@ -585,7 +519,7 @@ import {
   paginateStreamsByCursor,
   type CursorPaginationOptions,
   type PaginatedStreamsResponse,
-} from "./pagination";
+} from "./pagination.ts";
 
 export {
   paginateStreamsByCursor,
@@ -594,7 +528,7 @@ export {
   type PaginationDirection,
   type CursorPaginationOptions,
   type PaginatedStreamsResponse,
-} from "./pagination";
+} from "./pagination.ts";
 
 /**
  * Discovers and paginates streams for any Stellar address across incoming
